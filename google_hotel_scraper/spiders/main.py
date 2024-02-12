@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from lxml.html import fromstring
 from html import unescape
 from ordered_set import OrderedSet
+from google_hotel_scraper.items import GoogleHotelScraperItem
 
 
 class MainSpider(scrapy.Spider):
@@ -15,16 +16,12 @@ class MainSpider(scrapy.Spider):
 		'FEEDS': { 'output.csv': { 'format': 'csv', 'overwrite': True}},
         'FEED_EXPORT_FIELDS': [
             'hotel_name',
-            'check_in_date',
-            'check_out_date',
+            'check_in',
+            'check_out',
             'price',
-            'extra_charges',
-            'address',
-            'price_div_content',
-            'hotel_url',
-            'input_hotel_name',
-            'input_check_in_date',
-            'input_check_out_date'
+            'data_id',
+            'official_site_div_content',
+            'input_hotel_name'
         ]
 	}
 
@@ -84,17 +81,16 @@ class MainSpider(scrapy.Spider):
             check_out_date = parser.xpath("//input[@type='text' and @placeholder='Check-out']/@value")
             official_site_div_content = "-".join(text_content_list)
             data = {
-                "Hotel Name": hotel_name,
-                "Check-in": check_in_date[0] if check_in_date else None,
-                "Check-out": check_out_date[0] if check_out_date else None,
-                "Price": price,
-                "data-id": div_id[0],
-                "Official Site Div Content": official_site_div_content
+                "hotel_name": hotel_name,
+                "check_in": check_in_date[0] if check_in_date else None,
+                "check_out": check_out_date[0] if check_out_date else None,
+                "price": price,
+                "data_id": div_id[0],
+                "official_site_div_content": official_site_div_content,
+                "input_hotel_name": input_hotel_name
             }
-            print(data)
+            yield GoogleHotelScraperItem(**data)
 
-            
-            
     def clean_text(self, text):
         if not text or not str(text).strip():
             return
